@@ -81,6 +81,7 @@ input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;bord
 .modal-card{background:var(--panel);color:var(--ink);border-radius:10px;padding:18px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:12px}
 .modal-card img{width:100%;border-radius:4px}
 .modal-card p{margin:0}
+.modal-card a.btn{justify-content:center;text-decoration:none}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -126,7 +127,8 @@ input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;bord
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <p id="modalTitle"><strong>Save your picture</strong></p>
     <img id="modalImg" alt="Your finished stand-in picture">
-    <p class="small">Press and hold the image (or right-click it) and choose Save Image.</p>
+    <p class="small" id="modalNote"></p>
+    <a class="btn" id="modalOpen" href="https://skullyman.github.io/PhotoStandIn/" target="_blank" rel="noopener" hidden>Open the stand-in in a new tab</a>
     <button class="btn" id="modalClose">Close</button>
   </div>
 </div>
@@ -297,18 +299,42 @@ let downloads = null;
 if (window.claude && claude.use) claude.use('downloads').then(d => { downloads = d; }).catch(() => {});
 function exportCanvas(){ const c = document.createElement('canvas'); c.width = W; c.height = H; compose(c.getContext('2d'), false); return c; }
 function fileName(){ return 'im-riding-island-rail.jpg'; }
-function anchorSave(c){
-  try {
-    const a = document.createElement('a'); a.href = c.toDataURL('image/jpeg', 0.92); a.download = fileName();
-    document.body.appendChild(a); a.click(); a.remove(); return true;
-  } catch (e){ return false; }
+const framed = (() => { try { return window.self !== window.top; } catch (e){ return true; } })();
+const touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+function blobDownload(blob){
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = fileName(); document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
-function showFallback(c){ $('modalImg').src = c.toDataURL('image/jpeg', 0.92); $('modal').hidden = false; $('modalClose').focus(); }
+function showFallback(c, note){
+  $('modalImg').src = c.toDataURL('image/jpeg', 0.92);
+  $('modalNote').textContent = note || 'Press and hold the picture (phone) or right-click it (computer) and choose Save image.';
+  $('modalOpen').hidden = !framed;
+  $('modal').hidden = false; $('modalClose').focus();
+}
+async function saveStandalone(c){
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
+  if (!blob){ showFallback(c); return; }
+  // Phones: the share sheet offers "Save Image" to the photo library.
+  if (touch && navigator.canShare){
+    const file = new File([blob], fileName(), { type:'image/jpeg' });
+    if (navigator.canShare({ files:[file] })){
+      try { await navigator.share({ files:[file], title:"I'm riding Island Rail!" }); return; }
+      catch (e){ if (e && e.name === 'AbortError') return; }
+    }
+  }
+  if (!framed && !touch){ blobDownload(blob); toast('Download started. Look in your Downloads folder.'); return; }
+  // Inside an embed, or a phone without sharing: try a download, and always show the picture to save by hand.
+  if (!touch) blobDownload(blob);
+  showFallback(c, framed && !touch
+    ? 'If no download started, right-click the picture and choose Save image as…, or open the stand-in in its own tab.'
+    : undefined);
+}
 $('modalClose').addEventListener('click', () => { $('modal').hidden = true; });
 $('modal').addEventListener('click', e => { if (e.target.id === 'modal') $('modal').hidden = true; });
 $('download').addEventListener('click', () => {
   const c = exportCanvas();
-  if (!downloads){ if (!(window.claude && claude.use) && anchorSave(c)) { toast('Picture saved.'); return; } showFallback(c); return; }
+  if (!downloads){ saveStandalone(c); return; }
   c.toBlob(async blob => {
     try { await downloads.save({ filename:fileName(), data:blob }); toast('Picture saved.'); }
     catch (err){
