@@ -78,10 +78,24 @@ input[type=range]{width:100%;accent-color:var(--tomato)}
 input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;border:1.5px solid var(--line);background:transparent;color:var(--ink)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:500;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
 .modal{position:fixed;inset:0;background:rgba(10,12,28,.78);display:flex;align-items:center;justify-content:center;z-index:40;padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
-.modal-card{background:var(--panel);color:var(--ink);border-radius:10px;padding:18px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:12px}
+.modal-card{background:var(--panel);color:var(--ink);border-radius:10px;padding:18px;max-width:420px;width:100%;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:10px}
 .modal-card img{width:100%;border-radius:4px}
 .modal-card p{margin:0}
-.modal-card a.btn{justify-content:center;text-decoration:none}
+.modal-card .btn{justify-content:center;text-decoration:none;width:100%}
+.fs-toggle{position:absolute;top:26px;right:26px;z-index:2;appearance:none;border:0;border-radius:6px;background:rgba(10,16,13,.72);color:#fff;font:inherit;font-weight:700;font-size:13px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fs-toggle:hover{background:rgba(10,16,13,.9)}
+.fs-toggle svg{width:16px;height:16px}
+#fsbar{display:none}
+body.immersive{overflow:hidden}
+body.immersive .stage{position:fixed;inset:0;z-index:20;border-radius:0;background:#000;justify-content:center;gap:10px;padding:max(10px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px))}
+body.immersive #board{width:min(100%, calc((100vh - 96px) * 16 / 9));width:min(100%, calc((100dvh - 96px) * 16 / 9));border-radius:0;box-shadow:none}
+body.immersive .hint,body.immersive .fs-toggle{display:none}
+body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+#fsbar .btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.5);color:#fff;font-size:15px;padding:10px 14px}
+#fsbar .btn.primary{width:auto;background:#f2a900;border-color:#f2a900;color:#1b1f33;font-size:15px;padding:10px 16px}
+#fsbar label.btn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.rotate-tip{display:none;color:#c6cbe3;font-size:13px;margin:0;text-align:center}
+@media (orientation: portrait) and (max-width: 700px){body.immersive .rotate-tip{display:block}}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -95,8 +109,16 @@ input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;bord
 
   <main class="app">
     <section class="stage" id="stage" aria-label="Stand-in preview">
+      <button class="fs-toggle" id="fsOpen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Full screen</button>
       <canvas id="board" width="2400" height="1350" tabindex="0" aria-label="Stand-in board. Drag to move your photo, arrow keys nudge it, plus and minus zoom."></canvas>
       <p class="hint" id="hint">Add a photo to step behind the board. Then drag it to move, and scroll or pinch to zoom.</p>
+      <p class="rotate-tip">Turn your phone sideways for a bigger picture.</p>
+      <div id="fsbar">
+        <label class="btn" for="file2">Choose a photo<input type="file" id="file2" accept="image/*"></label>
+        <button class="btn" id="fsFit" type="button">Re-center</button>
+        <button class="btn primary" id="fsDownload" type="button">Download picture</button>
+        <button class="btn" id="fsClose" type="button">Exit full screen</button>
+      </div>
     </section>
 
     <aside class="panel">
@@ -118,6 +140,7 @@ input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;bord
       </div>
 
       <button class="btn primary" id="download">Download picture</button>
+      <button class="btn quiet" id="fsOpen2" type="button" style="justify-content:center">Full screen</button>
     </aside>
   </main>
 </div>
@@ -125,11 +148,14 @@ input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;bord
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <div class="modal" id="modal" hidden>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <p id="modalTitle"><strong>Save your picture</strong></p>
+    <p id="modalTitle"><strong>Your picture is ready</strong></p>
     <img id="modalImg" alt="Your finished stand-in picture">
+    <button class="btn primary" id="modalShare" type="button" hidden>Share or save to photos</button>
+    <a class="btn" id="modalSave" href="#" download="im-riding-island-rail.jpg">Download picture</a>
+    <a class="btn quiet" id="modalView" href="#" target="_blank" rel="noopener">Open picture in a new tab</a>
+    <a class="btn quiet" id="modalOpen" href="https://skullyman.github.io/PhotoStandIn/" target="_blank" rel="noopener" hidden>Open the stand-in in a new tab</a>
     <p class="small" id="modalNote"></p>
-    <a class="btn" id="modalOpen" href="https://skullyman.github.io/PhotoStandIn/" target="_blank" rel="noopener" hidden>Open the stand-in in a new tab</a>
-    <button class="btn" id="modalClose">Close</button>
+    <button class="btn quiet" id="modalClose" type="button">Close</button>
   </div>
 </div>
 
@@ -301,35 +327,39 @@ function exportCanvas(){ const c = document.createElement('canvas'); c.width = W
 function fileName(){ return 'im-riding-island-rail.jpg'; }
 const framed = (() => { try { return window.self !== window.top; } catch (e){ return true; } })();
 const touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+let modalURL = null, modalFile = null;
 function blobDownload(blob){
   const url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = fileName(); document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 30000);
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
-function showFallback(c, note){
-  $('modalImg').src = c.toDataURL('image/jpeg', 0.92);
-  $('modalNote').textContent = note || 'Press and hold the picture (phone) or right-click it (computer) and choose Save image.';
+function showSaveSheet(blob){
+  if (modalURL) URL.revokeObjectURL(modalURL);
+  modalURL = URL.createObjectURL(blob);
+  modalFile = new File([blob], fileName(), { type:'image/jpeg' });
+  $('modalImg').src = modalURL;
+  $('modalSave').href = modalURL; $('modalSave').download = fileName();
+  $('modalView').href = modalURL;
+  let canShare = false; try { canShare = !!(navigator.canShare && navigator.canShare({ files:[modalFile] })); } catch (e){}
+  $('modalShare').hidden = !canShare;
   $('modalOpen').hidden = !framed;
-  $('modal').hidden = false; $('modalClose').focus();
+  $('modalNote').textContent = framed
+    ? 'If nothing saves here, open the stand-in in its own tab and try again.'
+    : 'Downloads go to your Downloads folder. Sharing lets you save to your photos.';
+  $('modal').hidden = false;
+  ($('modalShare').hidden ? $('modalSave') : $('modalShare')).focus();
 }
+function showFallback(c){ c.toBlob(b => { if (b) showSaveSheet(b); }, 'image/jpeg', 0.92); }
 async function saveStandalone(c){
   const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
-  if (!blob){ showFallback(c); return; }
-  // Phones: the share sheet offers "Save Image" to the photo library.
-  if (touch && navigator.canShare){
-    const file = new File([blob], fileName(), { type:'image/jpeg' });
-    if (navigator.canShare({ files:[file] })){
-      try { await navigator.share({ files:[file], title:"I'm riding Island Rail!" }); return; }
-      catch (e){ if (e && e.name === 'AbortError') return; }
-    }
-  }
+  if (!blob){ toast('That picture couldn’t be made. Try a different photo.'); return; }
   if (!framed && !touch){ blobDownload(blob); toast('Download started. Look in your Downloads folder.'); return; }
-  // Inside an embed, or a phone without sharing: try a download, and always show the picture to save by hand.
-  if (!touch) blobDownload(blob);
-  showFallback(c, framed && !touch
-    ? 'If no download started, right-click the picture and choose Save image as…, or open the stand-in in its own tab.'
-    : undefined);
+  showSaveSheet(blob);
 }
+$('modalShare').addEventListener('click', async () => {
+  try { await navigator.share({ files:[modalFile], title:"I'm riding Island Rail!" }); }
+  catch (e){ if (!e || e.name !== 'AbortError') toast('Sharing isn’t available here. Use Download picture instead.'); }
+});
 $('modalClose').addEventListener('click', () => { $('modal').hidden = true; });
 $('modal').addEventListener('click', e => { if (e.target.id === 'modal') $('modal').hidden = true; });
 $('download').addEventListener('click', () => {
@@ -345,6 +375,37 @@ $('download').addEventListener('click', () => {
     }
   }, 'image/jpeg', 0.92);
 });
+
+/* ---------- full screen ---------- */
+let realFS = false;
+function enterFS(){
+  document.body.classList.add('immersive');
+  const el = document.documentElement;
+  const req = el.requestFullscreen ? el.requestFullscreen({ navigationUI:'hide' }) : (el.webkitRequestFullscreen ? el.webkitRequestFullscreen() : null);
+  if (req && req.then) req.then(() => {
+    try { screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {}); } catch (e){}
+  }).catch(() => {});
+  render();
+}
+function exitFS(){
+  document.body.classList.remove('immersive');
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen();
+}
+function onFSChange(){
+  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  if (on) realFS = true;
+  else if (realFS){ realFS = false; document.body.classList.remove('immersive'); }
+}
+document.addEventListener('fullscreenchange', onFSChange);
+document.addEventListener('webkitfullscreenchange', onFSChange);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('immersive') && $('modal').hidden) exitFS(); });
+$('fsOpen').addEventListener('click', enterFS);
+$('fsOpen2').addEventListener('click', enterFS);
+$('fsClose').addEventListener('click', exitFS);
+$('fsFit').addEventListener('click', () => { if (photo) fit(); else $('file2').click(); });
+$('fsDownload').addEventListener('click', () => $('download').click());
+$('file2').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
 
 /* ---------- boot ---------- */
 function boot(){ rebuildBoard(); render(); }
