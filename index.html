@@ -141,6 +141,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
       <button class="btn primary" id="download">Download picture</button>
       <button class="btn quiet" id="fsOpen2" type="button" style="justify-content:center">Full screen</button>
+      <p class="small" style="text-align:center">Version 5</p>
     </aside>
   </main>
 </div>
@@ -152,7 +153,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
     <img id="modalImg" alt="Your finished stand-in picture">
     <button class="btn primary" id="modalShare" type="button" hidden>Share or save to photos</button>
     <a class="btn" id="modalSave" href="#" download="im-riding-island-rail.jpg">Download picture</a>
-    <a class="btn quiet" id="modalView" href="#" target="_blank" rel="noopener">Open picture in a new tab</a>
+    <button class="btn quiet" id="modalView" type="button">Open picture in a new tab</button>
     <a class="btn quiet" id="modalOpen" href="https://skullyman.github.io/PhotoStandIn/" target="_blank" rel="noopener" hidden>Open the stand-in in a new tab</a>
     <p class="small" id="modalNote"></p>
     <button class="btn quiet" id="modalClose" type="button">Close</button>
@@ -333,13 +334,18 @@ function blobDownload(blob){
   a.href = url; a.download = fileName(); document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
-function showSaveSheet(blob){
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let modalDataURL = '';
+function blobToDataURL(blob){ return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.onerror = () => r(''); fr.readAsDataURL(blob); }); }
+async function showSaveSheet(blob){
   if (modalURL) URL.revokeObjectURL(modalURL);
   modalURL = URL.createObjectURL(blob);
   modalFile = new File([blob], fileName(), { type:'image/jpeg' });
+  modalDataURL = await blobToDataURL(blob);
   $('modalImg').src = modalURL;
-  $('modalSave').href = modalURL; $('modalSave').download = fileName();
-  $('modalView').href = modalURL;
+  // Samsung Internet and some Android browsers fail on blob: downloads, so phones get a data: link.
+  $('modalSave').href = (touch && !isIOS && modalDataURL) ? modalDataURL : modalURL;
+  $('modalSave').download = fileName();
   let canShare = false; try { canShare = !!(navigator.canShare && navigator.canShare({ files:[modalFile] })); } catch (e){}
   $('modalShare').hidden = !canShare;
   $('modalOpen').hidden = !framed;
@@ -349,6 +355,17 @@ function showSaveSheet(blob){
   $('modal').hidden = false;
   ($('modalShare').hidden ? $('modalSave') : $('modalShare')).focus();
 }
+// "Open picture" builds a plain page holding the image, which every phone browser lets you press-and-hold.
+$('modalView').addEventListener('click', e => {
+  e.preventDefault();
+  const w = window.open('', '_blank');
+  if (!w){ toast('Your browser blocked the new tab. Press and hold the picture above instead.'); return; }
+  w.document.write('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>I\'m riding Island Rail!</title>'
+    + '<body style="margin:0;background:#111;color:#eee;font:16px system-ui,sans-serif;text-align:center">'
+    + '<p style="padding:12px 16px;margin:0">Press and hold the picture, then choose Download image or Save image.</p>'
+    + '<img src="' + modalDataURL + '" style="width:100%;height:auto;display:block" alt="Your Island Rail picture"></body>');
+  w.document.close();
+});
 function showFallback(c){ c.toBlob(b => { if (b) showSaveSheet(b); }, 'image/jpeg', 0.92); }
 async function saveStandalone(c){
   const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
