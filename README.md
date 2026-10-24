@@ -11,6 +11,8 @@ Everything runs in the browser. Photos never leave the visitor's device.
 - `boards/window-seat.jpg` — the Window Seat board
 - `boards/tunnel.jpg` — the Tunnel Run board
 
+- `og-image.jpg` — the preview picture shown when the link is posted on Facebook, X, LinkedIn, Slack, texts and so on
+
 The face holes are cut in code, so the green in the artwork never shows.
 
 ## Publish with GitHub Pages
@@ -25,3 +27,7 @@ The face holes are cut in code, so the green in the artwork never shows.
 Add a 2400×1350 image to `boards/`, then add a line to the `SCENES` list near the top of the script in `index.html` with its name, file and `hole` (centre `x`, `y` and radii `rx`, `ry`, in pixels).
 
 More at [restoreislandrail.com](https://restoreislandrail.com).
+
+## Link preview
+
+The `og:` and `twitter:` tags at the top of `index.html` point to `https://skullyman.github.io/PhotoStandIn/`. If you move the site to its own address (for example `photo.restoreislandrail.com`), change the `og:url`, `og:image` and `twitter:image` addresses to match.
