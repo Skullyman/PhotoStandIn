@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Put your face on the Salish Express sign and share your Island Rail picture. From the Restore Island Rail Society.">
+<meta name="description" content="Put your face in an Island Rail photo stand-in and share your picture. From the Restore Island Rail Society.">
 <title>Island Rail Stand-In</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Karla:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
-<style>\nbody{{margin:0}}\nimg{{max-width:100%}}
+<style>
+body{margin:0}
+img{max-width:100%}
 /* Layout: painted plywood board on the left as the stage, a narrow "ticket booth" control column on the right; stacks on phones. */
 :root{
   --bg:#eceee9;
@@ -57,9 +59,9 @@ h1 span{color:var(--tomato)}
 .step{display:flex;flex-direction:column;gap:10px}
 .step h2{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:8px}
 .step h2 b{font-family:var(--font-mono);font-weight:500;color:var(--tomato);font-size:12px}
-.scenes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.scenes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .scene{appearance:none;border:2px solid var(--line);background:transparent;border-radius:8px;padding:4px 4px 6px;cursor:pointer;color:var(--ink);font:inherit;font-size:12px;font-weight:500;display:flex;flex-direction:column;gap:4px;align-items:center;min-width:0}
-.scene canvas{width:100%;height:auto;aspect-ratio:1200/1800;border-radius:4px;display:block}
+.scene img{width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:4px;display:block}
 .scene span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .scene[aria-pressed="true"]{border-color:var(--marigold);box-shadow:0 0 0 2px var(--marigold) inset}
 .scene:focus-visible,button:focus-visible,input:focus-visible,label.btn:focus-within{outline:3px solid var(--focus);outline-offset:2px}
@@ -104,7 +106,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 <div class="wrap">
   <header>
     <div><p class="eyebrow">Restore Island Rail Society</p><h1>Island Rail <span>Stand-In</span></h1></div>
-    <p class="lede">Put your face on the Salish Express sign, download your picture, and share it to help bring passenger rail back to the Island.</p>
+    <p class="lede">Pick a board, put your face in the hole, download your picture, and share it to help bring passenger rail back to the Island.</p>
   </header>
 
   <main class="app">
@@ -123,7 +125,12 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
     <aside class="panel">
       <div class="step">
-        <h2><b>1</b> Add your photo</h2>
+        <h2><b>1</b> Pick a board</h2>
+        <div class="scenes" id="scenes" role="group" aria-label="Boards"></div>
+      </div>
+
+      <div class="step">
+        <h2><b>2</b> Add your photo</h2>
         <div class="row">
           <label class="btn" for="file">Choose a photo<input type="file" id="file" accept="image/*"></label>
           <button class="btn quiet" id="remove" disabled>Remove photo</button>
@@ -132,7 +139,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
       </div>
 
       <div class="step">
-        <h2><b>2</b> Line up your face</h2>
+        <h2><b>3</b> Line up your face</h2>
         <div class="slider"><label for="zoom">Zoom</label><input type="range" id="zoom" min="20" max="400" value="100" disabled><output id="zoomOut" for="zoom">100%</output></div>
         <div class="slider"><label for="rot">Tilt</label><input type="range" id="rot" min="-45" max="45" value="0" disabled><output id="rotOut" for="rot">0°</output></div>
         <div class="slider"><label for="bright">Brightness</label><input type="range" id="bright" min="-40" max="40" value="0" disabled><output id="brightOut" for="bright">0</output></div>
@@ -141,7 +148,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
       <button class="btn primary" id="download">Download picture</button>
       <button class="btn quiet" id="fsOpen2" type="button" style="justify-content:center">Full screen</button>
-      <p class="small" style="text-align:center">Version 5</p>
+      <p class="small" style="text-align:center">Version 7</p>
     </aside>
   </main>
 </div>
@@ -180,7 +187,9 @@ function limb(x, pts, w, fill, edge){
 
 /* ---------- scenes ---------- */
 const SCENES = [
-  { id:'salish', name:'Salish Express', banner:'', src:'boards/salish-express.jpg', hole:{x:2118, y:722, rx:216, ry:224} }
+  { id:'salish', name:'Salish Express', banner:'', src:'boards/salish-express.jpg', hole:{x:2118, y:722, rx:216, ry:224} },
+  { id:'window', name:'Window Seat',    banner:'', src:'boards/window-seat.jpg',    hole:{x:1587, y:567, rx:119, ry:166} },
+  { id:'tunnel', name:'Tunnel Run',     banner:'', src:'boards/tunnel.jpg',         hole:{x:1461, y:622, rx:154, ry:164} }
 ];
 function loadArt(){
   return Promise.all(SCENES.map(s => new Promise(res => {
@@ -392,6 +401,23 @@ $('download').addEventListener('click', () => {
     }
   }, 'image/jpeg', 0.92);
 });
+
+/* ---------- board picker ---------- */
+const scenesEl = $('scenes');
+SCENES.forEach((s, i) => {
+  const b = document.createElement('button'); b.className = 'scene'; b.type = 'button'; b.setAttribute('aria-pressed', i === sceneIdx);
+  const im = document.createElement('img'); im.src = s.src; im.alt = ''; im.loading = 'lazy';
+  const t = document.createElement('span'); t.textContent = s.name;
+  b.append(im, t); b.addEventListener('click', () => pickScene(i)); scenesEl.append(b);
+});
+function pickScene(i){
+  if (i === sceneIdx) return;
+  const a = scene().hole, b = SCENES[i].hole, k = b.rx / a.rx;
+  P.x = b.x + (P.x - a.x) * k; P.y = b.y + (P.y - a.y) * k; P.s *= k; fitS *= k;
+  sceneIdx = i;
+  [...scenesEl.children].forEach((el, n) => el.setAttribute('aria-pressed', n === i));
+  rebuildBoard(); syncControls(); render();
+}
 
 /* ---------- full screen ---------- */
 let realFS = false;
