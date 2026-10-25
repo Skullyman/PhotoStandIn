@@ -10,6 +10,7 @@ Everything runs in the browser. Photos never leave the visitor's device.
 - `boards/salish-express.jpg` — the Salish Express board
 - `boards/window-seat.jpg` — the Window Seat board
 - `boards/tunnel.jpg` — the Tunnel Run board
+- `boards/rail-with-trail.jpg` — the Rail with Trail board
 
 - `og-image.jpg` — the preview picture shown when the link is posted on Facebook, X, LinkedIn, Slack, texts and so on
 
