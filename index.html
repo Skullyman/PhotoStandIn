@@ -24,7 +24,7 @@
 <meta name="twitter:image" content="https://skullyman.github.io/PhotoStandIn/og-image.jpg">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Karla:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=Karla:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
 <style>
 body{margin:0}
 img{max-width:100%}
@@ -40,7 +40,9 @@ img{max-width:100%}
   --tomato:#d9412b;
   --stage:#16231d;
   --focus:#1f5a40;
-  --font-display:"Rye", "Rockwell", Georgia, serif;
+  --font-display:"Outfit", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --rail:#1e4696;
+  --leaf:#5aa83a;
   --font-body:"Karla", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:"DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
@@ -48,6 +50,8 @@ img{max-width:100%}
   :root:not([data-theme="light"]){
     --bg:#101a16; --panel:#18241f; --ink:#eef0f8; --muted:#a3b2a9; --line:#2c3a33;
     --cobalt:#7fcfa5; --marigold:#f5b625; --tomato:#ff6b52; --stage:#08100c; --focus:#f5b625;
+  --rail:#8eb4ff; --leaf:#8ed46a;
+    --rail:#8eb4ff; --leaf:#8ed46a;
     color-scheme:dark;
   }
 }
@@ -60,8 +64,21 @@ img{max-width:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
 .wrap{max-width:1180px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
 header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px;margin-bottom:22px}
-h1{font-family:var(--font-display);font-weight:400;font-size:clamp(28px,4.4vw,44px);line-height:1.05;margin:0;letter-spacing:.01em;text-wrap:balance}
-h1 span{color:var(--tomato)}
+h1{font-family:var(--font-display);font-weight:800;font-size:clamp(30px,4.8vw,50px);line-height:1;margin:0;letter-spacing:-.03em;text-wrap:balance}
+/* "Stand-In" leans forward with speed lines trailing it: a quiet nod to faster trains. */
+.t2{color:var(--rail);white-space:nowrap}
+.t2 em{font-style:normal;display:inline-block;transform:skewX(-9deg);transform-origin:bottom left}
+.speed{display:inline-flex;flex-direction:column;align-items:flex-end;gap:.085em;width:.95em;margin-right:.14em;vertical-align:.26em}
+.speed b{display:block;height:.075em;border-radius:1em;background:linear-gradient(90deg, transparent, var(--leaf))}
+.speed b:nth-child(1){width:55%}
+.speed b:nth-child(2){width:100%}
+.speed b:nth-child(3){width:35%}
+@keyframes zip{from{transform:translateX(-.5em);opacity:0}to{transform:none;opacity:1}}
+@keyframes lean{from{transform:skewX(0)}to{transform:skewX(-9deg)}}
+.speed b{animation:zip .7s cubic-bezier(.2,.8,.2,1) both}
+.speed b:nth-child(2){animation-delay:.08s}
+.speed b:nth-child(3){animation-delay:.16s}
+.t2 em{animation:lean .7s cubic-bezier(.2,.8,.2,1) both}
 .eyebrow{margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cobalt)}
 .lede{margin:0;color:var(--muted);max-width:44ch}
 .app{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
@@ -126,7 +143,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 <body>
 <div class="wrap">
   <header>
-    <div><p class="eyebrow">Restore Island Rail Society</p><h1>Island Rail <span>Stand-In</span></h1></div>
+    <div><p class="eyebrow">Restore Island Rail Society</p><h1>Island Rail <span class="t2"><i class="speed" aria-hidden="true"><b></b><b></b><b></b></i><em>Stand-In</em></span></h1></div>
     <p class="lede">Pick a board, put your face in the hole, download your picture, and share it to help bring passenger rail back to the Island.</p>
   </header>
 
@@ -172,7 +189,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
       <button class="btn primary" id="download">Download picture</button>
       <button class="btn quiet" id="fsOpen2" type="button" style="justify-content:center">Full screen</button>
-      <p class="small" style="text-align:center">Version 12</p>
+      <p class="small" style="text-align:center">Version 13</p>
     </aside>
   </main>
 </div>
@@ -593,7 +610,7 @@ function boot(){ rebuildBoard(); render(); buildThumbs(); }
 boot();
 loadArt().then(boot);
 if (document.fonts && document.fonts.load){
-  Promise.all([document.fonts.load('72px Rye'), document.fonts.ready, loadArt()]).then(() => boot()).catch(() => {});
+  Promise.all([document.fonts.load('800 48px Outfit'), document.fonts.ready, loadArt()]).then(() => boot()).catch(() => {});
 }
 })();
 </script>
