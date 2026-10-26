@@ -5,18 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Put your face in an Island Rail photo stand-in and share your picture. From the Restore Island Rail Society.">
 <title>Island Rail Stand-In</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0e224e">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Restore Island Rail Society">
 <meta property="og:title" content="Island Rail Stand-In">
-<meta property="og:description" content="Put your face on the train and share your picture to help bring passenger rail back to Vancouver Island.">
+<meta property="og:description" content="Snap a selfie or add a photo, pick a frame, and share your support for passenger rail with trails on Vancouver Island.">
 <meta property="og:url" content="https://skullyman.github.io/PhotoStandIn/">
 <meta property="og:image" content="https://skullyman.github.io/PhotoStandIn/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A Salish Express train on the Vancouver Island coast beside a photo stand-in sign with a face hole.">
+<meta property="og:image:alt" content="The Re-Imagine Island Rail, Rails with Trails photo frame, with a camera button where your photo goes.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Island Rail Stand-In">
-<meta name="twitter:description" content="Put your face on the train and share your picture to help bring passenger rail back to Vancouver Island.">
+<meta name="twitter:description" content="Snap a selfie or add a photo, pick a frame, and share your support for passenger rail with trails on Vancouver Island.">
 <meta name="twitter:image" content="https://skullyman.github.io/PhotoStandIn/og-image.jpg">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -97,6 +101,10 @@ input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;bord
 .modal-card img{width:100%;border-radius:4px}
 .modal-card p{margin:0}
 .modal-card .btn{justify-content:center;text-decoration:none;width:100%}
+.cam-card{max-width:560px}
+.cam-view{position:relative;border-radius:6px;overflow:hidden;background:#000;aspect-ratio:4/3}
+.cam-view video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+.cam-count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 96px/1 Karla, system-ui, sans-serif;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,.6)}
 .fs-toggle{position:absolute;top:26px;right:26px;z-index:2;appearance:none;border:0;border-radius:6px;background:rgba(10,16,13,.72);color:#fff;font:inherit;font-weight:700;font-size:13px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .fs-toggle:hover{background:rgba(10,16,13,.9)}
 .fs-toggle svg{width:16px;height:16px}
@@ -125,10 +133,11 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
   <main class="app">
     <section class="stage" id="stage" aria-label="Stand-in preview">
       <button class="fs-toggle" id="fsOpen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Full screen</button>
-      <canvas id="board" width="2400" height="1350" tabindex="0" aria-label="Stand-in board. Drag to move your photo, arrow keys nudge it, plus and minus zoom."></canvas>
-      <p class="hint" id="hint">Add a photo to step behind the board. Then drag it to move, and scroll or pinch to zoom.</p>
+      <canvas id="board" width="1600" height="1600" tabindex="0" aria-label="Stand-in board. Drag to move your photo, arrow keys nudge it, plus and minus zoom."></canvas>
+      <p class="hint" id="hint">Tap the board to take or choose a photo. Then drag it to move, and scroll or pinch to zoom.</p>
       <p class="rotate-tip">Turn your phone sideways for a bigger picture.</p>
       <div id="fsbar">
+        <button class="btn" id="fsCam" type="button">Take a photo</button>
         <label class="btn" for="file2">Choose a photo<input type="file" id="file2" accept="image/*"></label>
         <button class="btn" id="fsFit" type="button">Re-center</button>
         <button class="btn primary" id="fsDownload" type="button">Download picture</button>
@@ -145,10 +154,12 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
       <div class="step">
         <h2><b>2</b> Add your photo</h2>
         <div class="row">
+          <button class="btn" id="camBtn" type="button">Take a photo</button>
           <label class="btn" for="file">Choose a photo<input type="file" id="file" accept="image/*"></label>
+          <input type="file" id="fileCam" accept="image/*" capture="user" hidden>
           <button class="btn quiet" id="remove" disabled>Remove photo</button>
         </div>
-        <p class="small">You can also drop an image on the board or paste one. Photos stay on your device.</p>
+        <p class="small">Take a selfie with your camera, or choose a photo you already have. You can also drop or paste one. Photos stay on your device.</p>
       </div>
 
       <div class="step">
@@ -161,12 +172,28 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
       <button class="btn primary" id="download">Download picture</button>
       <button class="btn quiet" id="fsOpen2" type="button" style="justify-content:center">Full screen</button>
-      <p class="small" style="text-align:center">Version 10</p>
+      <p class="small" style="text-align:center">Version 12</p>
     </aside>
   </main>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="modal" id="addSheet" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <p id="addTitle"><strong>Add your photo</strong></p>
+    <button class="btn primary" id="addCam" type="button">Take a photo</button>
+    <button class="btn" id="addFile" type="button">Choose a photo</button>
+    <button class="btn quiet" id="addCancel" type="button">Cancel</button>
+  </div>
+</div>
+<div class="modal" id="camModal" hidden>
+  <div class="modal-card cam-card" role="dialog" aria-modal="true" aria-labelledby="camTitle">
+    <p id="camTitle"><strong>Take a photo</strong></p>
+    <div class="cam-view"><video id="camVideo" playsinline muted autoplay></video><div class="cam-count" id="camCount" hidden></div></div>
+    <button class="btn primary" id="camSnap" type="button">Take photo</button>
+    <button class="btn quiet" id="camCancel" type="button">Cancel</button>
+  </div>
+</div>
 <div class="modal" id="modal" hidden>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <p id="modalTitle"><strong>Your picture is ready</strong></p>
@@ -183,6 +210,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 <script>
 (() => {
 let W = 2400, H = 1350;
+const touch = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
 const $ = id => document.getElementById(id);
 const canvas = $('board'), ctx = canvas.getContext('2d');
 
@@ -200,6 +228,7 @@ function limb(x, pts, w, fill, edge){
 
 /* ---------- scenes ---------- */
 const SCENES = [
+  { id:'reimagine', name:'Rails with Trails Frame', banner:'', src:'boards/reimagine-frame.jpg', mask:'boards/reimagine-frame-hole.png', w:1600, h:1600, fill:true, file:'rails-with-trails.jpg', hole:{x:800, y:768, rx:279, ry:271} },
   { id:'salish', name:'Salish Express', banner:'', src:'boards/salish-express.jpg', hole:{x:2118, y:722, rx:216, ry:224} },
   { id:'window', name:'Window Seat',    banner:'', src:'boards/window-seat.jpg',    hole:{x:1587, y:567, rx:119, ry:166} },
   { id:'tunnel', name:'Tunnel Run',     banner:'', src:'boards/tunnel.jpg',         hole:{x:1461, y:622, rx:154, ry:164} },
@@ -223,20 +252,35 @@ function applySize(){
 
 /* ---------- shared board parts ---------- */
 function makeBoard(scene, text, scale){
-  const c = document.createElement('canvas'); c.width = Math.round(W * scale); c.height = Math.round(H * scale);
+  const sw = scene.w || 2400, sh = scene.h || 1350;
+  const c = document.createElement('canvas'); c.width = Math.round(sw * scale); c.height = Math.round(sh * scale);
   const x = c.getContext('2d'); x.scale(scale, scale);
-  if (scene.art) x.drawImage(scene.art, 0, 0, W, H); else { x.fillStyle = '#9fb9c9'; x.fillRect(0, 0, W, H); }
+  if (scene.art) x.drawImage(scene.art, 0, 0, sw, sh); else { x.fillStyle = '#9fb9c9'; x.fillRect(0, 0, sw, sh); }
   x.globalCompositeOperation = 'destination-out';
-  if (scene.mask){ if (scene.maskImg) x.drawImage(scene.maskImg, 0, 0, W, H); }
+  if (scene.mask){ if (scene.maskImg) x.drawImage(scene.maskImg, 0, 0, sw, sh); }
   else { ell(x, scene.hole.x, scene.hole.y, scene.hole.rx, scene.hole.ry); x.fillStyle = '#000'; x.fill(); }
   return c;
 }
-function placeholder(x, h){
-  x.save(); ell(x, h.x, h.y, h.rx, h.ry); x.clip();
-  const g = x.createRadialGradient(h.x, h.y - 30, 10, h.x, h.y, h.ry * 1.2); g.addColorStop(0, '#5a6290'); g.addColorStop(1, '#2b3058'); x.fillStyle = g; x.fillRect(h.x - h.rx, h.y - h.ry, h.rx * 2, h.ry * 2);
-  x.fillStyle = 'rgba(255,255,255,.18)'; ell(x, h.x, h.y - 20, h.rx * .55, h.ry * .62); x.fill();
-  x.fillStyle = 'rgba(255,255,255,.85)'; x.textAlign = 'center'; x.textBaseline = 'middle';
-  const fs = Math.round(h.rx * .26); x.font = `${fs}px Rye, Georgia, serif`; x.fillText('YOUR', h.x, h.y - fs * .6); x.fillText('FACE', h.x, h.y + fs * .7);
+function rrect(x, X, Y, w, h, r){ x.beginPath(); if (x.roundRect) x.roundRect(X, Y, w, h, r); else x.rect(X, Y, w, h); }
+function placeholder(x, h, sc){
+  sc = sc || scene();
+  const bg = '#e8eef6', col = '#1e4696', cx = h.x, cy = h.y, rx = h.rx, ry = h.ry;
+  x.save();
+  if (!sc.mask){ ell(x, cx, cy, rx, ry); x.clip(); }
+  x.fillStyle = bg; x.fillRect(cx - rx * 1.2, cy - ry * 1.2, rx * 2.4, ry * 2.4);
+  // camera icon
+  const s = Math.min(rx, ry) * .3, y0 = cy - ry * .16;
+  x.fillStyle = col;
+  rrect(x, cx - s, y0 - s * .62, s * 2, s * 1.34, s * .22); x.fill();
+  rrect(x, cx - s * .38, y0 - s * .86, s * .76, s * .36, s * .1); x.fill();
+  x.fillStyle = bg; circ(x, cx, y0 + s * .08, s * .44); x.fill();
+  x.fillStyle = col; circ(x, cx, y0 + s * .08, s * .28); x.fill();
+  // label
+  const fs = Math.round(Math.min(rx, ry) * .15);
+  x.font = `700 ${fs}px Karla, system-ui, -apple-system, "Segoe UI", sans-serif`;
+  x.textAlign = 'center'; x.textBaseline = 'top';
+  x.fillText(touch ? 'Tap to add' : 'Click to add', cx, cy + ry * .3);
+  x.fillText('your photo', cx, cy + ry * .3 + fs * 1.25);
   x.restore();
 }
 function innerShadow(x, h){
@@ -247,7 +291,7 @@ function innerShadow(x, h){
 
 /* ---------- state ---------- */
 let sceneIdx = 0, boardCache = null, photo = null, fitS = 1;
-const P = { x:2118, y:722, s:1, rot:0, bright:0 };
+const P = { x:SCENES[0].hole.x, y:SCENES[0].hole.y, s:1, rot:0, bright:0 };
 let ghost = false;
 
 function scene(){ return SCENES[sceneIdx]; }
@@ -308,7 +352,7 @@ function loadFile(file){
   img.src = url;
 }
 $('file').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
-$('remove').addEventListener('click', () => { photo = null; setControls(false); $('hint').textContent = 'Add a photo to step behind the board. Then drag it to move, and scroll or pinch to zoom.'; render(); });
+$('remove').addEventListener('click', () => { photo = null; setControls(false); $('hint').textContent = 'Tap the board to take or choose a photo. Then drag it to move, and scroll or pinch to zoom.'; render(); });
 $('fit').addEventListener('click', fit);
 const stage = $('stage');
 ['dragenter', 'dragover'].forEach(t => stage.addEventListener(t, e => { e.preventDefault(); stage.classList.add('drop'); }));
@@ -334,7 +378,7 @@ function zoomAt(cx, cy, k){
 const pts = new Map(); let pinch = null;
 function toCanvas(e){ const r = canvas.getBoundingClientRect(); return { x:(e.clientX - r.left) * W / r.width, y:(e.clientY - r.top) * H / r.height }; }
 canvas.addEventListener('pointerdown', e => {
-  if (!photo) { $('file').click(); return; }
+  if (!photo) { askForPhoto(); return; }
   canvas.setPointerCapture(e.pointerId); pts.set(e.pointerId, toCanvas(e));
   canvas.classList.add('dragging'); ghost = true;
   if (pts.size === 2){ const [a, b] = [...pts.values()]; pinch = { d:Math.hypot(a.x - b.x, a.y - b.y), mx:(a.x + b.x) / 2, my:(a.y + b.y) / 2 }; }
@@ -353,7 +397,7 @@ function endPtr(e){ pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if 
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
 canvas.addEventListener('wheel', e => { if (!photo) return; e.preventDefault(); const p = toCanvas(e); zoomAt(p.x, p.y, Math.exp(-e.deltaY * .0015)); }, { passive:false });
 canvas.addEventListener('keydown', e => {
-  if (!photo) { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('file').click(); } return; }
+  if (!photo) { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); askForPhoto(); } return; }
   const step = e.shiftKey ? 40 : 10, h = scene().hole;
   const m = { ArrowLeft:[-step, 0], ArrowRight:[step, 0], ArrowUp:[0, -step], ArrowDown:[0, step] }[e.key];
   if (m){ e.preventDefault(); P.x += m[0]; P.y += m[1]; render(); }
@@ -369,7 +413,6 @@ if (window.claude && claude.use) claude.use('downloads').then(d => { downloads =
 function exportCanvas(){ const c = document.createElement('canvas'); c.width = W; c.height = H; compose(c.getContext('2d'), false); return c; }
 function fileName(){ return scene().file || 'im-riding-island-rail.jpg'; }
 const framed = (() => { try { return window.self !== window.top; } catch (e){ return true; } })();
-const touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
 let modalURL = null, modalFile = null;
 function blobDownload(blob){
   const url = URL.createObjectURL(blob), a = document.createElement('a');
@@ -453,6 +496,62 @@ function pickScene(i){
   if (photo && (!!prev.fill !== !!SCENES[i].fill)) fit(); else { syncControls(); render(); }
 }
 
+/* ---------- camera ---------- */
+let camStream = null;
+function closeCam(){
+  if (camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  $('camVideo').srcObject = null; $('camModal').hidden = true; $('camSnap').disabled = false; $('camCount').hidden = true;
+}
+async function openCamera(){
+  $('addSheet').hidden = true;
+  // Phones: the browser's own camera screen, front camera first.
+  if (touch || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ $('fileCam').click(); return; }
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ ideal:1920 }, height:{ ideal:1440 } }, audio:false });
+    $('camVideo').srcObject = camStream; $('camModal').hidden = false; $('camSnap').focus();
+  } catch (err){
+    closeCam();
+    toast(err && err.name === 'NotAllowedError'
+      ? 'Camera access was blocked. Allow it in your browser, or choose a photo instead.'
+      : 'No camera was found. Choose a photo instead.');
+  }
+}
+$('camSnap').addEventListener('click', () => {
+  $('camSnap').disabled = true;
+  let n = 3; const el = $('camCount'); el.textContent = n; el.hidden = false;
+  const tick = setInterval(() => {
+    n -= 1;
+    if (n > 0){ el.textContent = n; return; }
+    clearInterval(tick); el.hidden = true;
+    const v = $('camVideo'), c = document.createElement('canvas');
+    c.width = v.videoWidth || 1280; c.height = v.videoHeight || 960;
+    const x = c.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(v, 0, 0, c.width, c.height);
+    c.toBlob(b => { closeCam(); if (b) loadFile(new File([b], 'selfie.jpg', { type:'image/jpeg' })); }, 'image/jpeg', 0.92);
+  }, 700);
+});
+$('camCancel').addEventListener('click', closeCam);
+$('camBtn').addEventListener('click', openCamera);
+$('fsCam').addEventListener('click', openCamera);
+$('addCam').addEventListener('click', openCamera);
+$('addFile').addEventListener('click', () => { $('addSheet').hidden = true; $('file').click(); });
+$('addCancel').addEventListener('click', () => { $('addSheet').hidden = true; });
+$('addSheet').addEventListener('click', e => { if (e.target.id === 'addSheet') $('addSheet').hidden = true; });
+$('fileCam').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
+function askForPhoto(){ $('addSheet').hidden = false; $('addCam').focus(); }
+
+/* ---------- thumbnails ---------- */
+function buildThumbs(){
+  SCENES.forEach((sc, i) => {
+    if (!sc.art) return;
+    const sw = sc.w || 2400, sh = sc.h || 1350, k = 360 / sw;
+    const c = document.createElement('canvas'); c.width = Math.round(sw * k); c.height = Math.round(sh * k);
+    const x = c.getContext('2d'); x.scale(k, k);
+    placeholder(x, sc.hole, sc); x.drawImage(makeBoard(sc, '', 1), 0, 0, sw, sh);
+    const img = scenesEl.children[i] && scenesEl.children[i].querySelector('img');
+    if (img) img.src = c.toDataURL('image/jpeg', 0.85);
+  });
+}
+
 /* ---------- full screen ---------- */
 let realFS = false;
 function enterFS(){
@@ -476,16 +575,21 @@ function onFSChange(){
 }
 document.addEventListener('fullscreenchange', onFSChange);
 document.addEventListener('webkitfullscreenchange', onFSChange);
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('immersive') && $('modal').hidden) exitFS(); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!$('camModal').hidden){ closeCam(); return; }
+  if (!$('addSheet').hidden){ $('addSheet').hidden = true; return; }
+  if (document.body.classList.contains('immersive') && $('modal').hidden) exitFS();
+});
 $('fsOpen').addEventListener('click', enterFS);
 $('fsOpen2').addEventListener('click', enterFS);
 $('fsClose').addEventListener('click', exitFS);
-$('fsFit').addEventListener('click', () => { if (photo) fit(); else $('file2').click(); });
+$('fsFit').addEventListener('click', () => { if (photo) fit(); else askForPhoto(); });
 $('fsDownload').addEventListener('click', () => $('download').click());
 $('file2').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
 
 /* ---------- boot ---------- */
-function boot(){ rebuildBoard(); render(); }
+function boot(){ rebuildBoard(); render(); buildThumbs(); }
 boot();
 loadArt().then(boot);
 if (document.fonts && document.fonts.load){
