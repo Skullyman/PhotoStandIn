@@ -11,6 +11,7 @@ Everything runs in the browser. Photos never leave the visitor's device.
 - `boards/window-seat.jpg` — the Window Seat board
 - `boards/tunnel.jpg` — the Tunnel Run board
 - `boards/rail-with-trail.jpg` — the Rail with Trail board
+- `boards/profile-frame.jpg` and `boards/profile-frame-hole.png` — the square Profile Frame board and the cut-out shape for its opening
 
 - `og-image.jpg` — the preview picture shown when the link is posted on Facebook, X, LinkedIn, Slack, texts and so on
 

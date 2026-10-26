@@ -64,7 +64,7 @@ h1 span{color:var(--tomato)}
 @media (min-width:980px){.app{grid-template-columns:minmax(0,2.2fr) minmax(300px,1fr)}}
 .stage{background:var(--stage);border-radius:10px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative}
 .stage.drop{outline:3px dashed var(--marigold);outline-offset:-8px}
-#board{display:block;width:100%;max-width:100%;aspect-ratio:16/9;height:auto;border-radius:4px;touch-action:none;cursor:grab;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+#board{display:block;width:100%;max-width:min(100%, calc(78vh * var(--ar, 1.7778)));aspect-ratio:var(--ar-css, 16 / 9);height:auto;border-radius:4px;touch-action:none;cursor:grab;box-shadow:0 18px 40px rgba(0,0,0,.45)}
 #board.dragging{cursor:grabbing}
 #board:focus-visible{outline:3px solid var(--marigold);outline-offset:4px}
 .hint{color:#c6cbe3;font-size:13px;margin:0;text-align:center;max-width:52ch}
@@ -74,7 +74,7 @@ h1 span{color:var(--tomato)}
 .step h2 b{font-family:var(--font-mono);font-weight:500;color:var(--tomato);font-size:12px}
 .scenes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .scene{appearance:none;border:2px solid var(--line);background:transparent;border-radius:8px;padding:4px 4px 6px;cursor:pointer;color:var(--ink);font:inherit;font-size:12px;font-weight:500;display:flex;flex-direction:column;gap:4px;align-items:center;min-width:0}
-.scene img{width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:4px;display:block}
+.scene img{width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;background:#fff;border-radius:4px;display:block}
 .scene span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .scene[aria-pressed="true"]{border-color:var(--marigold);box-shadow:0 0 0 2px var(--marigold) inset}
 .scene:focus-visible,button:focus-visible,input:focus-visible,label.btn:focus-within{outline:3px solid var(--focus);outline-offset:2px}
@@ -103,7 +103,7 @@ input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;bord
 #fsbar{display:none}
 body.immersive{overflow:hidden}
 body.immersive .stage{position:fixed;inset:0;z-index:20;border-radius:0;background:#000;justify-content:center;gap:10px;padding:max(10px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px))}
-body.immersive #board{width:min(100%, calc((100vh - 96px) * 16 / 9));width:min(100%, calc((100dvh - 96px) * 16 / 9));border-radius:0;box-shadow:none}
+body.immersive #board{max-width:none;width:min(100%, calc((100vh - 96px) * var(--ar, 1.7778)));width:min(100%, calc((100dvh - 96px) * var(--ar, 1.7778)));border-radius:0;box-shadow:none}
 body.immersive .hint,body.immersive .fs-toggle{display:none}
 body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 #fsbar .btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.5);color:#fff;font-size:15px;padding:10px 14px}
@@ -161,7 +161,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
       <button class="btn primary" id="download">Download picture</button>
       <button class="btn quiet" id="fsOpen2" type="button" style="justify-content:center">Full screen</button>
-      <p class="small" style="text-align:center">Version 9</p>
+      <p class="small" style="text-align:center">Version 10</p>
     </aside>
   </main>
 </div>
@@ -182,7 +182,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
 <script>
 (() => {
-const W = 2400, H = 1350;
+let W = 2400, H = 1350;
 const $ = id => document.getElementById(id);
 const canvas = $('board'), ctx = canvas.getContext('2d');
 
@@ -203,12 +203,22 @@ const SCENES = [
   { id:'salish', name:'Salish Express', banner:'', src:'boards/salish-express.jpg', hole:{x:2118, y:722, rx:216, ry:224} },
   { id:'window', name:'Window Seat',    banner:'', src:'boards/window-seat.jpg',    hole:{x:1587, y:567, rx:119, ry:166} },
   { id:'tunnel', name:'Tunnel Run',     banner:'', src:'boards/tunnel.jpg',         hole:{x:1461, y:622, rx:154, ry:164} },
-  { id:'trail',  name:'Rail with Trail', banner:'', src:'boards/rail-with-trail.jpg', hole:{x:651, y:710, rx:116, ry:123} }
+  { id:'trail',  name:'Rail with Trail', banner:'', src:'boards/rail-with-trail.jpg', hole:{x:651, y:710, rx:116, ry:123} },
+  { id:'profile', name:'Profile Frame', banner:'', src:'boards/profile-frame.jpg', mask:'boards/profile-frame-hole.png', w:1600, h:1600, fill:true, file:'i-support-island-rail.jpg', hole:{x:793, y:743, rx:572, ry:540} }
 ];
+function loadImg(src){ return new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }); }
 function loadArt(){
-  return Promise.all(SCENES.map(s => new Promise(res => {
-    const im = new Image(); im.onload = () => { s.art = im; res(); }; im.onerror = () => res(); im.src = s.src;
-  })));
+  return Promise.all(SCENES.map(async s => {
+    s.art = await loadImg(s.src);
+    if (s.mask) s.maskImg = await loadImg(s.mask);
+  }));
+}
+function applySize(){
+  const sc = scene(); W = sc.w || 2400; H = sc.h || 1350;
+  if (canvas.width !== W) canvas.width = W;
+  if (canvas.height !== H) canvas.height = H;
+  document.documentElement.style.setProperty('--ar', W / H);
+  document.documentElement.style.setProperty('--ar-css', W + ' / ' + H);
 }
 
 /* ---------- shared board parts ---------- */
@@ -216,7 +226,9 @@ function makeBoard(scene, text, scale){
   const c = document.createElement('canvas'); c.width = Math.round(W * scale); c.height = Math.round(H * scale);
   const x = c.getContext('2d'); x.scale(scale, scale);
   if (scene.art) x.drawImage(scene.art, 0, 0, W, H); else { x.fillStyle = '#9fb9c9'; x.fillRect(0, 0, W, H); }
-  x.globalCompositeOperation = 'destination-out'; ell(x, scene.hole.x, scene.hole.y, scene.hole.rx, scene.hole.ry); x.fillStyle = '#000'; x.fill();
+  x.globalCompositeOperation = 'destination-out';
+  if (scene.mask){ if (scene.maskImg) x.drawImage(scene.maskImg, 0, 0, W, H); }
+  else { ell(x, scene.hole.x, scene.hole.y, scene.hole.rx, scene.hole.ry); x.fillStyle = '#000'; x.fill(); }
   return c;
 }
 function placeholder(x, h){
@@ -240,7 +252,7 @@ let ghost = false;
 
 function scene(){ return SCENES[sceneIdx]; }
 function bannerText(){ return ''; }
-function rebuildBoard(){ boardCache = makeBoard(scene(), bannerText(), 1); }
+function rebuildBoard(){ applySize(); boardCache = makeBoard(scene(), bannerText(), 1); }
 
 function drawPhoto(x){
   x.save(); x.translate(P.x, P.y); x.rotate(P.rot * Math.PI / 180); x.scale(P.s, P.s);
@@ -254,7 +266,7 @@ function compose(x, withGhost){
     if (P.bright < 0){ x.fillStyle = `rgba(0,0,0,${-P.bright / 100})`; x.fillRect(0, 0, W, H); }
     else if (P.bright > 0){ x.save(); x.globalCompositeOperation = 'screen'; x.fillStyle = `rgba(255,248,235,${P.bright / 100 * .8})`; x.fillRect(0, 0, W, H); x.restore(); }
   } else placeholder(x, h);
-  innerShadow(x, h);
+  if (!scene().mask) innerShadow(x, h);
   x.drawImage(boardCache, 0, 0, W, H);
   if (withGhost && photo){ x.globalAlpha = .28; drawPhoto(x); x.globalAlpha = 1; }
 }
@@ -270,8 +282,15 @@ function syncControls(){
 }
 function fit(){
   const h = scene().hole;
-  fitS = (h.rx * 2 * 2.3) / photo.width;
-  P.s = fitS; P.rot = 0; P.x = h.x; P.y = h.y + 0.12 * photo.height * P.s;
+  P.rot = 0;
+  if (scene().fill){
+    // Profile frames: the whole photo fills the opening.
+    fitS = Math.max(h.rx * 2 / photo.width, h.ry * 2 / photo.height) * 1.04;
+    P.s = fitS; P.x = h.x; P.y = h.y;
+  } else {
+    fitS = (h.rx * 2 * 2.3) / photo.width;
+    P.s = fitS; P.x = h.x; P.y = h.y + 0.12 * photo.height * P.s;
+  }
   syncControls(); render();
 }
 function loadFile(file){
@@ -348,7 +367,7 @@ function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false
 let downloads = null;
 if (window.claude && claude.use) claude.use('downloads').then(d => { downloads = d; }).catch(() => {});
 function exportCanvas(){ const c = document.createElement('canvas'); c.width = W; c.height = H; compose(c.getContext('2d'), false); return c; }
-function fileName(){ return 'im-riding-island-rail.jpg'; }
+function fileName(){ return scene().file || 'im-riding-island-rail.jpg'; }
 const framed = (() => { try { return window.self !== window.top; } catch (e){ return true; } })();
 const touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
 let modalURL = null, modalFile = null;
@@ -426,11 +445,12 @@ SCENES.forEach((s, i) => {
 });
 function pickScene(i){
   if (i === sceneIdx) return;
-  const a = scene().hole, b = SCENES[i].hole, k = b.rx / a.rx;
+  const prev = scene(), a = prev.hole, b = SCENES[i].hole, k = b.rx / a.rx;
   P.x = b.x + (P.x - a.x) * k; P.y = b.y + (P.y - a.y) * k; P.s *= k; fitS *= k;
   sceneIdx = i;
   [...scenesEl.children].forEach((el, n) => el.setAttribute('aria-pressed', n === i));
-  rebuildBoard(); syncControls(); render();
+  rebuildBoard();
+  if (photo && (!!prev.fill !== !!SCENES[i].fill)) fit(); else { syncControls(); render(); }
 }
 
 /* ---------- full screen ---------- */
