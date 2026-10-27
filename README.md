@@ -8,6 +8,7 @@ Everything runs in the browser. Photos never leave the visitor's device.
 
 - `index.html` — the whole app (HTML, CSS and JavaScript in one file)
 - `boards/reimagine-frame.jpg` and `boards/reimagine-frame-hole.png` — the Rails with Trails Frame (the default board) and the cut-out shape for its opening
+- `boards/halloween.jpg`, `boards/halloween-hole-1.png`, `boards/halloween-hole-2.png` — the two-person Happy Halloween board and the cut-out shape for each face
 - `boards/salish-express.jpg` — the Salish Express board
 - `boards/window-seat.jpg` — the Window Seat board
 - `boards/tunnel.jpg` — the Tunnel Run board
@@ -28,15 +29,13 @@ The face holes are cut in code, so the green in the artwork never shows.
 
 ## Adding or changing a board
 
-Add a 2400×1350 image to `boards/`, then add a line to the `SCENES` list near the top of the script in `index.html` with its name, file and `hole` (centre `x`, `y` and radii `rx`, `ry`, in pixels).
+Add the image to `boards/`, then add a line to the `SCENES` list near the top of the script in `index.html`. Each board has a `holes` list with one entry per face: its centre (`x`, `y`) and radii (`rx`, `ry`) in pixels. Square boards also set `w` and `h`.
 
-More at [restoreislandrail.com](https://restoreislandrail.com).
+For faces that aren't a clean oval, give the hole a `mask`: a PNG the same size as the board that is transparent everywhere except the face shape. Boards with several holes get a "Photo 1 / Photo 2" picker automatically. The first board in the list is the one that opens by default.
 
 ## Link preview
 
 The `og:` and `twitter:` tags at the top of `index.html` point to `https://skullyman.github.io/PhotoStandIn/`. If you move the site to its own address (for example `photo.restoreislandrail.com`), change the `og:url`, `og:image` and `twitter:image` addresses to match.
-
-The first board in the `SCENES` list is the one that opens by default.
 
 ## Camera
 
