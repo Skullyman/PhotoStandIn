@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Put your face in an Island Rail photo stand-in and share your picture. From the Restore Island Rail Society.">
+<meta name="description" content="Put your face in an Island Rail photo stand-in and share your picture. Photos stay on your device and are never uploaded. From the Restore Island Rail Society.">
 <title>Island Rail Stand-In</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -13,15 +13,15 @@
 <meta property="og:site_name" content="Restore Island Rail Society">
 <meta property="og:title" content="Island Rail Stand-In">
 <meta property="og:description" content="Snap a selfie or add a photo, pick a frame, and share your support for passenger rail with trails on Vancouver Island.">
-<meta property="og:url" content="https://skullyman.github.io/PhotoStandIn/">
-<meta property="og:image" content="https://skullyman.github.io/PhotoStandIn/og-image.jpg">
+<meta property="og:url" content="https://photo.restoreislandrail.com/">
+<meta property="og:image" content="https://photo.restoreislandrail.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Re-Imagine Island Rail, Rails with Trails photo frame, with a camera button where your photo goes.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Island Rail Stand-In">
 <meta name="twitter:description" content="Snap a selfie or add a photo, pick a frame, and share your support for passenger rail with trails on Vancouver Island.">
-<meta name="twitter:image" content="https://skullyman.github.io/PhotoStandIn/og-image.jpg">
+<meta name="twitter:image" content="https://photo.restoreislandrail.com/og-image.jpg">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=Karla:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
@@ -83,6 +83,19 @@ h1{font-family:var(--font-display);font-weight:800;font-size:clamp(30px,4.8vw,50
 .lede{margin:0;color:var(--muted);max-width:44ch}
 .app{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
 @media (min-width:980px){.app{grid-template-columns:minmax(0,2.2fr) minmax(300px,1fr)}}
+@media (orientation:landscape) and (max-height:540px) and (min-width:560px){
+  .wrap{padding-block:12px 32px}
+  header{margin-bottom:10px}
+  .lede{display:none}
+  h1{font-size:28px}
+  .app{grid-template-columns:minmax(0,1.25fr) minmax(260px,1fr);gap:14px}
+  .stage{padding:10px;position:sticky;top:max(8px, env(safe-area-inset-top, 0px))}
+  .stage #board{max-width:min(100%, calc((100vh - 150px) * var(--ar, 1.7778)));max-width:min(100%, calc((100dvh - 150px) * var(--ar, 1.7778)))}
+  .stage-foot .hint{display:none}
+  .stage-foot{justify-content:center}
+  header{flex-wrap:nowrap}
+  .eyebrow{display:none}
+}
 .stage{background:var(--stage);border-radius:10px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative}
 .stage.drop{outline:3px dashed var(--marigold);outline-offset:-8px}
 #board{display:block;width:100%;max-width:min(100%, calc(78vh * var(--ar, 1.7778)));aspect-ratio:var(--ar-css, 16 / 9);height:auto;border-radius:4px;touch-action:none;cursor:grab;box-shadow:0 18px 40px rgba(0,0,0,.45)}
@@ -93,6 +106,10 @@ h1{font-family:var(--font-display);font-weight:800;font-size:clamp(30px,4.8vw,50
 .step{display:flex;flex-direction:column;gap:10px}
 .step h2{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:8px}
 .step h2 b{font-family:var(--font-mono);font-weight:500;color:var(--tomato);font-size:12px}
+.privacy{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;background:color-mix(in srgb, var(--leaf) 12%, transparent);border:1px solid color-mix(in srgb, var(--leaf) 35%, transparent)}
+.privacy svg{flex:none;width:18px;height:18px;margin-top:2px;color:var(--cobalt)}
+.privacy p{margin:0;font-size:13px;line-height:1.45;color:var(--ink);min-width:0}
+.modal-privacy{text-align:center}
 .slots{display:flex;flex-wrap:wrap;gap:8px}
 .slot{appearance:none;display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-weight:700;font-size:14px;padding:7px 12px 7px 7px;border-radius:999px;cursor:pointer}
 .slot[aria-pressed="true"]{border-color:var(--marigold);box-shadow:0 0 0 2px var(--marigold) inset}
@@ -128,20 +145,23 @@ input[type=text]{width:100%;font:inherit;padding:9px 11px;border-radius:6px;bord
 .cam-view{position:relative;border-radius:6px;overflow:hidden;background:#000;aspect-ratio:4/3}
 .cam-view video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
 .cam-count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 96px/1 Karla, system-ui, sans-serif;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,.6)}
-.fs-toggle{position:absolute;top:26px;right:26px;z-index:2;appearance:none;border:0;border-radius:6px;background:rgba(10,16,13,.72);color:#fff;font:inherit;font-weight:700;font-size:13px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-.fs-toggle:hover{background:rgba(10,16,13,.9)}
+.stage-foot{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;width:100%;flex-wrap:wrap}
+.stage-foot .hint{text-align:left;flex:1 1 220px;min-width:0}
+.fs-toggle{flex:none;appearance:none;border:1px solid rgba(255,255,255,.28);border-radius:6px;background:rgba(255,255,255,.06);color:#fff;font:inherit;font-weight:700;font-size:13px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fs-toggle:hover{background:rgba(255,255,255,.14)}
+.fs-toggle:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
 .fs-toggle svg{width:16px;height:16px}
 #fsbar{display:none}
 body.immersive{overflow:hidden}
 body.immersive .stage{position:fixed;inset:0;z-index:20;border-radius:0;background:#000;justify-content:center;gap:10px;padding:max(10px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px))}
 body.immersive #board{max-width:none;width:min(100%, calc((100vh - 96px) * var(--ar, 1.7778)));width:min(100%, calc((100dvh - 96px) * var(--ar, 1.7778)));border-radius:0;box-shadow:none}
-body.immersive .hint,body.immersive .fs-toggle{display:none}
+body.immersive .stage-foot{display:none}
 body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 #fsbar .btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.5);color:#fff;font-size:15px;padding:10px 14px}
 #fsbar .btn.primary{width:auto;background:#f2a900;border-color:#f2a900;color:#1b1f33;font-size:15px;padding:10px 16px}
 #fsbar label.btn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .rotate-tip{display:none;color:#c6cbe3;font-size:13px;margin:0;text-align:center}
-@media (orientation: portrait) and (max-width: 700px){body.immersive .rotate-tip{display:block}}
+@media (orientation: portrait) and (max-width: 700px){body.immersive.wide-board .rotate-tip{display:block}}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -155,9 +175,11 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
   <main class="app">
     <section class="stage" id="stage" aria-label="Stand-in preview">
-      <button class="fs-toggle" id="fsOpen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Full screen</button>
       <canvas id="board" width="1600" height="1600" tabindex="0" aria-label="Stand-in board. Drag to move your photo, arrow keys nudge it, plus and minus zoom."></canvas>
-      <p class="hint" id="hint">Tap the board to take or choose a photo. Then drag it to move, and scroll or pinch to zoom.</p>
+      <div class="stage-foot">
+        <p class="hint" id="hint">Tap the board to take or choose a photo. Then drag it to move, and scroll or pinch to zoom.</p>
+        <button class="fs-toggle" id="fsOpen" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Full screen</button>
+      </div>
       <p class="rotate-tip">Turn your phone sideways for a bigger picture.</p>
       <div id="fsbar">
         <button class="btn" id="fsCam" type="button">Take a photo</button>
@@ -183,7 +205,8 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
           <input type="file" id="fileCam" accept="image/*" capture="user" hidden>
           <button class="btn quiet" id="remove" disabled>Remove photo</button>
         </div>
-        <p class="small">Take a selfie with your camera, or choose a photo you already have. Boards with more than one face have a spot for each person. Photos stay on your device.</p>
+        <p class="small">Take a selfie with your camera, or choose a photo you already have. Boards with more than one face have a spot for each person.</p>
+        <div class="privacy" id="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg><p><strong>Your photos stay private.</strong> They never leave your device: nothing is uploaded, stored or shared. Your picture is made right here in your browser and disappears when you close the page, unless you choose to save or share it.</p></div>
       </div>
 
       <div class="step">
@@ -196,7 +219,7 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
 
       <button class="btn primary" id="download">Download picture</button>
       <button class="btn quiet" id="fsOpen2" type="button" style="justify-content:center">Full screen</button>
-      <p class="small" style="text-align:center">Version 14</p>
+      <p class="small" style="text-align:center">Version 15</p>
     </aside>
   </main>
 </div>
@@ -225,8 +248,9 @@ body.immersive #fsbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px
     <button class="btn primary" id="modalShare" type="button" hidden>Share or save to photos</button>
     <a class="btn" id="modalSave" href="#" download="im-riding-island-rail.jpg">Download picture</a>
     <button class="btn quiet" id="modalView" type="button">Open picture in a new tab</button>
-    <a class="btn quiet" id="modalOpen" href="https://skullyman.github.io/PhotoStandIn/" target="_blank" rel="noopener" hidden>Open the stand-in in a new tab</a>
+    <a class="btn quiet" id="modalOpen" href="https://photo.restoreislandrail.com/" target="_blank" rel="noopener" hidden>Open the stand-in in a new tab</a>
     <p class="small" id="modalNote"></p>
+    <p class="small modal-privacy">This picture exists only on your device. It isn’t uploaded or kept anywhere.</p>
     <button class="btn quiet" id="modalClose" type="button">Close</button>
   </div>
 </div>
@@ -280,6 +304,7 @@ function applySize(){
   if (canvas.height !== H) canvas.height = H;
   document.documentElement.style.setProperty('--ar', W / H);
   document.documentElement.style.setProperty('--ar-css', W + ' / ' + H);
+  document.body.classList.toggle('wide-board', W / H > 1.2);
 }
 
 /* ---------- shared board parts ---------- */
@@ -527,6 +552,8 @@ let downloads = null;
 if (window.claude && claude.use) claude.use('downloads').then(d => { downloads = d; }).catch(() => {});
 function exportCanvas(){ const c = document.createElement('canvas'); c.width = W; c.height = H; compose(c.getContext('2d'), false); return c; }
 function fileName(){ return scene().file || 'im-riding-island-rail.jpg'; }
+// Inside a tall embed the pop-up can sit outside what the visitor sees; scroll the host page to it.
+function reveal(id){ if (!framed) return; try { $(id).querySelector('.modal-card').scrollIntoView({ block:'center', behavior:'smooth' }); } catch (e){} }
 const framed = (() => { try { return window.self !== window.top; } catch (e){ return true; } })();
 let modalURL = null, modalFile = null;
 function blobDownload(blob){
@@ -536,12 +563,18 @@ function blobDownload(blob){
 }
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 let modalDataURL = '';
-function blobToDataURL(blob){ return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.onerror = () => r(''); fr.readAsDataURL(blob); }); }
-async function showSaveSheet(blob){
+// Encode once, synchronously: much faster than canvas.toBlob on phones, and gives both forms.
+function encode(c){
+  let du = ''; try { du = c.toDataURL('image/jpeg', 0.92); } catch (e){ return null; }
+  const bin = atob(du.slice(du.indexOf(',') + 1)), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return { blob:new Blob([u8], { type:'image/jpeg' }), dataURL:du };
+}
+function showSaveSheet(blob, dataURL){
   if (modalURL) URL.revokeObjectURL(modalURL);
   modalURL = URL.createObjectURL(blob);
   modalFile = new File([blob], fileName(), { type:'image/jpeg' });
-  modalDataURL = await blobToDataURL(blob);
+  modalDataURL = dataURL || '';
   $('modalImg').src = modalURL;
   // Samsung Internet and some Android browsers fail on blob: downloads, so phones get a data: link.
   $('modalSave').href = (touch && !isIOS && modalDataURL) ? modalDataURL : modalURL;
@@ -554,6 +587,7 @@ async function showSaveSheet(blob){
     : 'Downloads go to your Downloads folder. Sharing lets you save to your photos.';
   $('modal').hidden = false;
   ($('modalShare').hidden ? $('modalSave') : $('modalShare')).focus();
+  reveal('modal');
 }
 // "Open picture" builds a plain page holding the image, which every phone browser lets you press-and-hold.
 $('modalView').addEventListener('click', e => {
@@ -563,15 +597,15 @@ $('modalView').addEventListener('click', e => {
   w.document.write('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>I\'m riding Island Rail!</title>'
     + '<body style="margin:0;background:#111;color:#eee;font:16px system-ui,sans-serif;text-align:center">'
     + '<p style="padding:12px 16px;margin:0">Press and hold the picture, then choose Download image or Save image.</p>'
-    + '<img src="' + modalDataURL + '" style="width:100%;height:auto;display:block" alt="Your Island Rail picture"></body>');
+    + '<img src="' + (modalDataURL || modalURL) + '" style="width:100%;height:auto;display:block" alt="Your Island Rail picture"></body>');
   w.document.close();
 });
-function showFallback(c){ c.toBlob(b => { if (b) showSaveSheet(b); }, 'image/jpeg', 0.92); }
-async function saveStandalone(c){
-  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
-  if (!blob){ toast('That picture couldn’t be made. Try a different photo.'); return; }
-  if (!framed && !touch){ blobDownload(blob); toast('Download started. Look in your Downloads folder.'); return; }
-  showSaveSheet(blob);
+function showFallback(c){ const e = encode(c); if (e) showSaveSheet(e.blob, e.dataURL); }
+function saveStandalone(c){
+  const e = encode(c);
+  if (!e){ toast('That picture couldn’t be made. Try a different photo.'); return; }
+  if (!framed && !touch){ blobDownload(e.blob); toast('Download started. Look in your Downloads folder.'); return; }
+  showSaveSheet(e.blob, e.dataURL);
 }
 $('modalShare').addEventListener('click', async () => {
   try { await navigator.share({ files:[modalFile], title:"I'm riding Island Rail!" }); }
@@ -582,7 +616,8 @@ $('modal').addEventListener('click', e => { if (e.target.id === 'modal') $('moda
 $('download').addEventListener('click', () => {
   const c = exportCanvas();
   if (!downloads){ saveStandalone(c); return; }
-  c.toBlob(async blob => {
+  const enc = encode(c); if (!enc){ toast('That picture couldn’t be made. Try a different photo.'); return; }
+  (async blob => {
     try { await downloads.save({ filename:fileName(), data:blob }); toast('Picture saved.'); }
     catch (err){
       const code = err && err.code;
@@ -590,7 +625,7 @@ $('download').addEventListener('click', () => {
       else if (code === 'rate_limited') toast('A save prompt is already open. Finish that one first.');
       else showFallback(c);
     }
-  }, 'image/jpeg', 0.92);
+  })(enc.blob);
 });
 
 /* ---------- board picker ---------- */
@@ -629,7 +664,7 @@ async function openCamera(){
   if (touch || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ $('fileCam').click(); return; }
   try {
     camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ ideal:1920 }, height:{ ideal:1440 } }, audio:false });
-    $('camVideo').srcObject = camStream; $('camModal').hidden = false; $('camSnap').focus();
+    $('camVideo').srcObject = camStream; $('camModal').hidden = false; $('camSnap').focus(); reveal('camModal');
   } catch (err){
     closeCam();
     toast(err && err.name === 'NotAllowedError'
@@ -647,7 +682,7 @@ $('camSnap').addEventListener('click', () => {
     const v = $('camVideo'), c = document.createElement('canvas');
     c.width = v.videoWidth || 1280; c.height = v.videoHeight || 960;
     const x = c.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(v, 0, 0, c.width, c.height);
-    c.toBlob(b => { closeCam(); if (b) loadFile(new File([b], 'selfie.jpg', { type:'image/jpeg' })); }, 'image/jpeg', 0.92);
+    const e = encode(c); closeCam(); if (e) loadFile(new File([e.blob], 'selfie.jpg', { type:'image/jpeg' }));
   }, 700);
 });
 $('camCancel').addEventListener('click', closeCam);
@@ -658,7 +693,7 @@ $('addFile').addEventListener('click', () => { $('addSheet').hidden = true; $('f
 $('addCancel').addEventListener('click', () => { $('addSheet').hidden = true; });
 $('addSheet').addEventListener('click', e => { if (e.target.id === 'addSheet') $('addSheet').hidden = true; });
 $('fileCam').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
-function askForPhoto(){ $('addSheet').hidden = false; $('addCam').focus(); }
+function askForPhoto(){ $('addSheet').hidden = false; $('addCam').focus(); reveal('addSheet'); }
 
 /* ---------- thumbnails ---------- */
 function buildThumbs(){

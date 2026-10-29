@@ -2,7 +2,9 @@
 
 A web photo stand-in for the Restore Island Rail Society. Visitors pick a board, take a selfie or choose a photo, line their face up in the hole, and download the finished picture.
 
-Everything runs in the browser. Photos never leave the visitor's device.
+## Privacy
+
+Everything runs in the visitor's browser. Photos are never uploaded, stored or shared: there is no server, database or analytics, and the only outside request is for the Google Fonts typefaces. The finished picture leaves the device only if the visitor saves or shares it themselves. The page says this to visitors under "Add your photo".
 
 ## Files
 
@@ -35,7 +37,11 @@ For faces that aren't a clean oval, give the hole a `mask`: a PNG the same size 
 
 ## Link preview
 
-The `og:` and `twitter:` tags at the top of `index.html` point to `https://skullyman.github.io/PhotoStandIn/`. If you move the site to its own address (for example `photo.restoreislandrail.com`), change the `og:url`, `og:image` and `twitter:image` addresses to match.
+The `og:` and `twitter:` tags at the top of `index.html` point to `https://photo.restoreislandrail.com/`. If the address ever changes, update `og:url`, `og:image` and `twitter:image` to match.
+
+## Custom domain
+
+The `CNAME` file tells GitHub Pages to serve the site at `photo.restoreislandrail.com`. Keep it in the repository.
 
 ## Camera
 
